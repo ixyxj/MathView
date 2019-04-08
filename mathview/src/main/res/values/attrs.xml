@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="MathWebView">
+        <attr name="text" format="string"/>
+        <attr name="engine" format="enum">
+            <enum name="KateX" value="0"/>
+            <enum name="MathJax" value="1"/>
+        </attr>
+        <attr name="background"/>
+    </declare-styleable>
+</resources>
