@@ -5,8 +5,8 @@
 
 ### Support
 
-- KateX
-- MathJax
+- KateX :https://github.com/KaTeX/KaTeX
+- MathJax :https://github.com/mathjax/MathJax
 
 
 
