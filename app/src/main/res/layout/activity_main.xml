@@ -25,10 +25,6 @@
             android:id="@+id/mathview_3"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:text="\[
-\left( \sum_{k=1}^n a_k b_k \right)^{\!\!2} \leq
- \left( \sum_{k=1}^n a_k^2 \right) \left( \sum_{k=1}^n b_k^2 \right)
-\]"
             app:engine="MathJax"/>
 
 </LinearLayout>

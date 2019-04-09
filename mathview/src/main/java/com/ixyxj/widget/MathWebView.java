@@ -6,6 +6,8 @@ import android.content.Context;
 import android.content.res.TypedArray;
 import android.graphics.Color;
 import android.os.Build;
+import android.support.annotation.NonNull;
+import android.text.TextUtils;
 import android.util.AttributeSet;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
@@ -24,6 +26,10 @@ import com.x5.template.providers.AndroidTemplates;
 public class MathWebView extends WebView {
     private int mEngine;
     private CharSequence mText;
+
+    // mathjax config
+    private CharSequence mConfigType;
+    private CharSequence mConfig;
 
     public MathWebView(Context context) {
         this(context, null);
@@ -53,7 +59,7 @@ public class MathWebView extends WebView {
         try {
             setBackgroundColor(array.getColor(R.styleable.MathWebView_background, Color.TRANSPARENT));
             setEngine(array.getInteger(R.styleable.MathWebView_engine, Engine.KATEX));
-            setText(array.getString(R.styleable.MathWebView_text));
+            setText(array.getString(R.styleable.MathWebView_text), array.getInteger(R.styleable.MathWebView_config_type, 0));
         } finally {
             array.recycle();
         }
@@ -80,41 +86,56 @@ public class MathWebView extends WebView {
      * set math text
      *
      * @param text math expression
+     * @param key
      */
-    public void setText(CharSequence text) {
+    private void setText(CharSequence text, int key) {
+        if (TextUtils.isEmpty(text)) return;
         this.mText = text;
-        Chunk chunk = getChunk();
-        String TAG_FORMULA = "formula";
-        String TAG_CONFIG = "config";
-        chunk.set(TAG_FORMULA, mText);
-        String mathJaxConfig = getMathJaxConfig();
-        if (mathJaxConfig != null && !mathJaxConfig.isEmpty())
-            chunk.set(TAG_CONFIG, mathJaxConfig);
-        this.loadDataWithBaseURL(null, chunk.toString(), "text/html", "utf-8", "about:blank");
+        mConfig = MathJaxConfig.getConf(key);
+        mConfigType = MathJaxConfig.getType(key);
+        if (!TextUtils.isEmpty(mConfig) && !TextUtils.isEmpty(mConfigType)) loadDataFromChunk();
     }
 
     /**
-     * Tweak the configuration of MathJax.
-     * The `config` string is a call statement for MathJax.Hub.Config().
-     * For example, to enable auto line breaking, you can call:
-     * config.("MathJax.Hub.Config({
-     * CommonHTML: { linebreaks: { automatic: true } },
-     * "HTML-CSS": { linebreaks: { automatic: true } },
-     * SVG: { linebreaks: { automatic: true } }
-     * });");
-     * <p>
-     * This method should be call BEFORE setText() and AFTER setEngine().
-     * PLEASE PAY ATTENTION THAT THIS METHOD IS FOR MATHJAX ONLY.
+     * API  set text
+     *
+     * @param text
      */
-    protected String getMathJaxConfig() {
-        return "MathJax.Hub.Config({\n" +
-                "  config: [\"MMLorHTML.js\"],\n" +
-                "  jax: [\"input/TeX\",\"input/MathML\",\"input/AsciiMath\",\"output/HTML-CSS\",\"output/NativeMML\", \"output/PreviewHTML\"],\n" +
-                "  extensions: [\"tex2jax.js\",\"mml2jax.js\",\"asciimath2jax.js\",\"MathMenu.js\",\"MathZoom.js\", \"fast-preview.js\", \"AssistiveMML.js\", \"a11y/accessibility-menu.js\"],\n" +
-                "  TeX: {\n" +
-                "    extensions: [\"AMSmath.js\",\"AMSsymbols.js\",\"noErrors.js\",\"noUndefined.js\"]\n" +
-                "  }\n" +
-                "});";
+    public void setText(@NonNull CharSequence text) {
+        mText = text;
+        checkConfig();
+        loadDataFromChunk();
+    }
+
+    /**
+     * api set text
+     *
+     * @param text
+     * @param type
+     * @param config
+     */
+    public void setText(@NonNull CharSequence text, String type, String config) {
+        mText = text;
+        mConfigType = type;
+        mConfig = config;
+        checkConfig();
+        loadDataFromChunk();
+    }
+
+    private void checkConfig() {
+        if (TextUtils.isEmpty(mConfigType)) mConfigType = MathJaxConfig.getType(0);
+        if (TextUtils.isEmpty(mConfig)) mConfig = MathJaxConfig.getConf(0);
+    }
+
+    /**
+     * load template
+     */
+    private void loadDataFromChunk() {
+        Chunk chunk = getChunk();
+        chunk.set("formula", mText);
+        chunk.set("config", mConfig);
+        chunk.set("config_type", mConfigType);
+        this.loadDataWithBaseURL(null, chunk.toString(), "text/html", "utf-8", "about:blank");
     }
 
     /**
